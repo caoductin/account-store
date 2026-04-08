@@ -1,8 +1,16 @@
-import type { NextConfig } from "next";
+// import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  output: "export",
-  basePath: "/account-store",
+// const nextConfig: NextConfig = {
+//   reactStrictMode: true,
+//   // output: "export",
+//   // basePath: "/account-store",
+// };
+
+// export default nextConfig;
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
 };
 
-export default nextConfig;
+module.exports = nextConfig;
