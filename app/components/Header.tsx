@@ -16,6 +16,10 @@ import {
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
+  useEffect(() => {
+    console.log("Header component đã mounted!");
+  }, []);
+
   // Khóa cuộn trang khi mở menu mobile để trải nghiệm tốt hơn
   useEffect(() => {
     if (isOpen) {
@@ -107,9 +111,8 @@ export default function Header() {
       {/* --- MOBILE DRAWER --- */}
       {/* Tăng z-index lên z-[9999] để chắc chắn đè lên mọi thứ */}
       <div
-        className={`fixed inset-0 z-[9999] transition-all duration-300 ${
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+        className={`fixed inset-0 z-[9999] transition-all duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
       >
         {/* Backdrop mờ */}
         <div
@@ -119,9 +122,8 @@ export default function Header() {
 
         {/* Thanh Menu trượt */}
         <aside
-          className={`absolute right-0 top-0 h-full w-[300px] max-w-[85vw] bg-white shadow-2xl transition-transform duration-300 transform flex flex-col ${
-            isOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          className={`absolute right-0 top-0 h-full w-[300px] max-w-[85vw] bg-white shadow-2xl transition-transform duration-300 transform flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
+            }`}
         >
           {/* Header trong menu */}
           <div className="p-5 flex items-center justify-between border-b border-slate-50">
