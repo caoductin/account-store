@@ -1,10 +1,17 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+
 export default function BagCard({ bag }: any) {
+    const router = useRouter();
+
+    const handleClick = () => {
+        router.push(`/xe-tui-mu/${bag.id}`);
+    };
+
     return (
         <div className="group bg-white rounded-2xl shadow hover:shadow-xl transition overflow-hidden border border-slate-100">
 
-            {/* Image */}
             <div className="relative h-40 bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                 <span className="text-4xl">🎁</span>
 
@@ -13,7 +20,6 @@ export default function BagCard({ bag }: any) {
                 </div>
             </div>
 
-            {/* Info */}
             <div className="p-4 flex flex-col gap-3">
                 <h3 className="font-bold text-slate-800 group-hover:text-blue-600 transition">
                     {bag.name}
@@ -28,7 +34,10 @@ export default function BagCard({ bag }: any) {
                         {bag.price.toLocaleString("vi-VN")}đ
                     </span>
 
-                    <button className="w-full sm:w-auto px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">
+                    <button
+                        onClick={handleClick}
+                        className="w-full sm:w-auto px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition"
+                    >
                         Xé ngay
                     </button>
                 </div>
