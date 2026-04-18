@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import "./globals.css";
+import { AuthProvider } from "./context/AuthContext";
 
 export default function RootLayout({
   children,
@@ -11,10 +12,11 @@ export default function RootLayout({
     <html lang="vi">
       <body className="bg-[#F8FAFC]">
         <Header />
-
-        <main className="min-h-screen">
-          {children}
-        </main>
+        <AuthProvider >
+          <main className="min-h-screen">
+            {children}
+          </main>
+        </AuthProvider>
 
         <Footer />
       </body>

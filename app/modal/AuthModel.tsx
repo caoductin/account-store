@@ -10,32 +10,72 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
 
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (isLogin) {
-      await supabase.auth.signInWithPassword({ email, password })
-    } else {
-      await supabase.auth.signUp({ email, password })
+    setLoading(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+
+        if (error) {
+          setError(error.message)
+        } else {
+          setMessage("Welcome back 👋")
+          setTimeout(() => onClose(), 1200)
+        }
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        })
+
+        if (error) {
+          setError(error.message)
+        } else {
+          setMessage("Check your email to continue 📩")
+        }
+      }
+    } catch {
+      setError("Something went wrong. Please try again.")
     }
 
-    onClose()
+    setLoading(false)
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl w-96">
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white p-7 rounded-2xl w-96 shadow-2xl animate-fadeIn">
 
-        <h2 className="text-xl font-bold mb-4">
-          {isLogin ? "Login" : "Sign Up"}
+        {/* Title */}
+        <h2 className="text-2xl font-semibold text-slate-800 mb-1">
+          {isLogin ? "Welcome back" : "Create account"}
         </h2>
 
-        <form onSubmit={handleAuth} className="space-y-3">
+        <p className="text-sm text-slate-500 mb-5">
+          {isLogin
+            ? "Login to continue your experience"
+            : "Join us in a few seconds"}
+        </p>
+
+        {/* Form */}
+        <form onSubmit={handleAuth} className="space-y-4">
+
           <input
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border p-2 rounded"
+            className="w-full border border-slate-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
           <input
@@ -43,22 +83,48 @@ export default function AuthModal({ onClose }: { onClose: () => void }) {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border p-2 rounded"
+            className="w-full border border-slate-200 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          <button className="w-full bg-blue-500 text-white p-2 rounded">
-            {isLogin ? "Login" : "Sign Up"}
+          <button
+            disabled={loading}
+            className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition font-medium"
+          >
+            {loading ? "Please wait..." : isLogin ? "Login" : "Sign up"}
           </button>
         </form>
 
-        <p className="text-sm mt-3">
-          <span onClick={() => setIsLogin(!isLogin)} className="text-blue-500 cursor-pointer">
-            Switch to {isLogin ? "Sign up" : "Login"}
+        {/* Feedback */}
+        <div className="min-h-[20px] mt-3">
+          {message && (
+            <p className="text-green-600 text-sm animate-fadeIn">
+              {message}
+            </p>
+          )}
+          {error && (
+            <p className="text-red-500 text-sm animate-fadeIn">
+              {error}
+            </p>
+          )}
+        </div>
+
+        {/* Switch */}
+        <p className="text-sm mt-4 text-center text-slate-500">
+          {isLogin ? "No account?" : "Already have one?"}
+          <span
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-blue-600 cursor-pointer ml-1 hover:underline"
+          >
+            {isLogin ? "Sign up" : "Login"}
           </span>
         </p>
 
-        <button onClick={onClose} className="mt-4 text-gray-500 text-sm">
-          Close
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-4 text-slate-400 hover:text-slate-600 text-lg"
+        >
+          ✕
         </button>
       </div>
     </div>

@@ -1,11 +1,23 @@
 "use client";
 
+import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 
-export default function BagCard({ bag }: any) {
+interface BagCardProps {
+    bag: any;
+    onRequireLogin: () => void;
+}
+
+export default function BagCard({ bag, onRequireLogin }: BagCardProps) {
     const router = useRouter();
+    const {user, loading} = useAuth();
 
     const handleClick = () => {
+        if (loading)  return ;
+        if(!user) {
+            onRequireLogin()
+            return;
+        }
         router.push(`/xe-tui-mu/${bag.id}`);
     };
 

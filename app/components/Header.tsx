@@ -12,10 +12,11 @@ import {
   PlusCircle,
   LogIn,
 } from "lucide-react";
+import { getSupabaseBrowserClient } from "../lib/superbase/browser_client";
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
-
+  const supabase = getSupabaseBrowserClient();
   useEffect(() => {
     console.log("Header component đã mounted!");
   }, []);
@@ -29,8 +30,20 @@ export default function Header() {
     }
   }, [isOpen]);
 
+  
+
   const isLoggedIn = true;
   const balance = 150000;
+
+  const handleLogout = async () => {
+  const { error } = await supabase.auth.signOut()
+
+  if (error) {
+    console.log(error.message)
+  } else {
+    console.log("Logged out!")
+  }
+}
 
   const navLinks = [
     { name: "Trang chủ", href: "/", icon: Home },
@@ -190,7 +203,7 @@ export default function Header() {
 
           {/* Footer menu */}
           <div className="p-6 border-t border-slate-50">
-            <button className="w-full py-4 text-sm font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">
+            <button onClick={handleLogout} className="w-full py-4 text-sm font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">
               Đăng xuất
             </button>
           </div>
