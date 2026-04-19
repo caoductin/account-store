@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   Menu,
   X,
@@ -13,8 +13,10 @@ import {
   LogIn,
 } from "lucide-react";
 import { getSupabaseBrowserClient } from "../lib/superbase/browser_client";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const supabase = getSupabaseBrowserClient();
   useEffect(() => {
@@ -41,7 +43,8 @@ export default function Header() {
   if (error) {
     console.log(error.message)
   } else {
-    console.log("Logged out!")
+    console.log("Logged out success!")
+    router.push("/")
   }
 }
 
