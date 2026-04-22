@@ -1,131 +1,12 @@
-// "use client";
-// import React, { useState } from "react";
-// import Lottie from "react-lottie-player";
-// import boxOpen from "@/app/loties/explosion.json";
-// import boxIdle from "@/app/loties/box.json";
-
-// const BlindBoxGame = () => {
-//   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-//   const [status, setStatus] = useState("idle"); // idle | opening | reveal
-//   const [fakeResults, setFakeResults] = useState([]); // Lưu các kết quả "hụt"
-
-//   // Giả lập danh sách 6 túi
-//   const boxes = [0, 1, 2, 3, 4, 5];
-
-//   const handleChoose = (index: number) => {
-//     if (status !== "idle") return;
-
-//     setSelectedIndex(index);
-//     setStatus("opening");
-
-//     // Tạo các kết quả "hụt" ngẫu nhiên để show cho các túi còn lại
-//     const fakeData = boxes.map(() => (Math.random() > 0.7 ? "VIP" : "Thường"));
-//     setFakeResults(fakeData);
-
-//     // Sau 1.5s thì hiện kết quả
-//     setTimeout(() => {
-//       setStatus("reveal");
-//     }, 2500);
-//   };
-
-//   const handleReset = () => {
-//     setSelectedIndex(null);
-//     setStatus("idle");
-//     setFakeResults([]);
-//   };
-
-//   return (
-//     <div className="min-h-screen bg-slate-950 p-10 flex flex-col items-center">
-//       <h1 className="text-3xl font-bold text-yellow-500 mb-8 uppercase tracking-widest">
-//         Chọn túi may mắn của bạn
-//       </h1>
-
-//       <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl">
-//         {boxes.map((box, index) => {
-//           const isSelected = selectedIndex === index;
-//           const isDimmed = selectedIndex !== null && !isSelected;
-
-//           return (
-//             <div
-//               key={index}
-//               onClick={() => handleChoose(index)}
-//               className={`relative flex flex-col items-center justify-center transition-all duration-500
-//                 ${status === "idle" ? "cursor-pointer hover:scale-105" : ""}
-//                 ${isDimmed ? "opacity-30 grayscale blur-[2px]" : "z-10"}
-//               `}
-//             >
-//               {/* HIỂU ỨNG LOTTIE */}
-//               {status === "opening" && isSelected ? (
-//                 <Lottie
-//                   animationData={boxOpen}
-//                   play
-//                   style={{ width: 200, height: 200 }}
-//                 />
-//               ) : status === "reveal" && isSelected ? (
-//                 // CARD KẾT QUẢ CHÍNH
-//                 <div className="bg-gradient-to-t from-yellow-600 to-yellow-300 p-[2px] rounded-lg animate-in zoom-in duration-300">
-//                   <div className="bg-gray-900 p-4 rounded-lg text-center w-40">
-//                     <p className="text-white font-bold text-xs">
-//                       BẠN NHẬN ĐƯỢC
-//                     </p>
-//                     <p className="text-yellow-400 font-black text-lg">
-//                       ACC VIP
-//                     </p>
-//                     <button className="mt-2 text-[10px] bg-white text-black px-2 py-1 rounded">
-//                       Copy Pass
-//                     </button>
-//                   </div>
-//                 </div>
-//               ) : (
-//                 <>
-//                   {/* TRẠNG THÁI CHỜ HOẶC TIẾT LỘ CÁC TÚI HỤT */}
-//                   <Lottie
-//                     loop
-//                     animationData={boxIdle}
-//                     play={status === "idle"}
-//                     style={{ width: 180, height: 180 }}
-//                   />
-//                   {status === "reveal" && !isSelected && (
-//                     <div className="absolute inset-0 flex items-center justify-center">
-//                       <span className="bg-black/50 text-white text-xs font-bold px-2 py-1 rounded border border-white/20">
-//                         {fakeResults[index]}
-//                       </span>
-//                     </div>
-//                   )}
-//                   {status === "idle" && (
-//                     <span className="absolute bottom-2 text-white/30 text-[10px] font-mono">
-//                       #{index + 101}
-//                     </span>
-//                   )}
-//                 </>
-//               )}
-//             </div>
-//           );
-//         })}
-//       </div>
-
-//       {/* NÚT CHƠI LẠI */}
-//       {status === "reveal" && (
-//         <button
-//           onClick={handleReset}
-//           className="mt-12 bg-yellow-500 hover:bg-yellow-400 text-black font-black py-4 px-10 rounded-full shadow-[0_0_20px_rgba(234,179,8,0.4)] transition-all hover:scale-110 active:scale-95"
-//         >
-//           LÀM VÁN MỚI!
-//         </button>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default BlindBoxGame;
-
 "use client";
 
 import Lottie from "react-lottie-player";
 import { useEffect, useState } from "react";
 import boxOpen from "@/app/loties/explosion.json";
 import boxIdle from "@/app/loties/box.json";
-import { supabase } from "@/app/lib/superbase/browser_client";
+import { getSupabaseBrowserClient } from "@/app/lib/superbase/browser_client";
+import AuthModal from "@/app/modal/AuthModel";
+import { useAuth } from "@/app/context/AuthContext";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export type BlindBag = {
@@ -178,9 +59,20 @@ const RARITY_STYLE: Record<string, { bg: string; text: string; glow: string }> =
       glow: "shadow-yellow-500/60",
     },
   };
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
+export default async function BlindBoxGamePage({ params }: PageProps) {
+  const { id } = await params;
+  return (
+    <main>
+      <BlindBoxGame bagId={id} />
+    </main>
+  );
+}
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function BlindBoxGame({ bagId }: { bagId: string }) {
+function BlindBoxGame({ bagId }: { bagId: string }) {
   const BOX_COUNT = 6;
 
   const [status, setStatus] = useState<"idle" | "opening" | "reveal" | "error">(
@@ -193,14 +85,18 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState<number | null>(null);
   const [copied, setCopied] = useState<"username" | "password" | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const { user } = useAuth();
+  const supabase = getSupabaseBrowserClient();
 
   useEffect(() => {
     const initData = async () => {
       setLoading(true);
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
+      // const {
+      //   data: { user },
+      // } = await supabase.auth.getUser();
+      console.log("current user:", user);
+      console.log("this is bag id", bagId);
       // Fetch song song cả thông tin túi và số dư để tiết kiệm thời gian
       const [bagRes, profileRes] = await Promise.all([
         supabase.from("blind_bags").select("*").eq("id", bagId).single(),
@@ -213,10 +109,12 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
           : null,
       ]);
 
-      if (bagRes.data) setBag(bagRes.data);
-
-      console.log("bageres res:", bagRes.data);
-      if (profileRes?.data) setBalance(profileRes.data.balance);
+      if (bagRes.error) {
+        console.error(bagRes.error);
+      } else {
+        setBag(bagRes.data);
+      }
+      // if (profileRes?.data) setBalance(profileRes.data.balance);
       console.log("profile res:", profileRes?.data);
 
       setLoading(false);
@@ -237,9 +135,14 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
       const {
         data: { session },
       } = await supabase.auth.getSession();
+      console.log("access_token:", session?.access_token?.slice(0, 20)); // Có token không?
+      console.log("expires_at:", session?.expires_at); // Đã hết hạn chưa?
+      console.log("token_type:", session?.token_type);
+      console.log("current session:", session);
       if (!session) {
         setErrorMsg("Bạn cần đăng nhập để mở túi.");
         setStatus("error");
+        setShowAuth(true);
         return;
       }
 
@@ -254,6 +157,7 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${session.access_token}`,
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
           },
           body: JSON.stringify({ bag_id: bag.id }),
         },
@@ -274,7 +178,8 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
         setBalance(json.balance_after);
         setStatus("reveal");
       }, 2500);
-    } catch {
+    } catch (error) {
+      console.error("thiss is error", error);
       setErrorMsg("Không thể kết nối máy chủ.");
       setStatus("error");
       setSelectedIndex(null);
@@ -319,6 +224,7 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
 
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col items-center px-4 py-12">
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       {/* Header */}
       <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-black text-yellow-400 uppercase tracking-widest mb-2">

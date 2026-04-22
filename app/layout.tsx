@@ -11,14 +11,11 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className="bg-[#F8FAFC]">
-        <Header />
-        <AuthProvider >
-          <main className="min-h-screen">
-            {children}
-          </main>
+        <AuthProvider>
+          <Header />
+          <main className="min-h-screen">{children}</main>
+          <Footer />
         </AuthProvider>
-
-        <Footer />
       </body>
     </html>
   );
