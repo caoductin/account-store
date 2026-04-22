@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from "next/link";
 
 export default function Footer() {
   return (
@@ -14,8 +14,8 @@ export default function Footer() {
               <span className="text-xl font-bold text-white">TúiMù.VN</span>
             </div>
             <p className="text-gray-400 text-sm max-w-md">
-              Website xé túi mù uy tín hàng đầu Việt Nam. 
-              Trải nghiệm cảm giác hồi hộp và nhận những phần thưởng giá trị.
+              Website xé túi mù uy tín hàng đầu Việt Nam. Trải nghiệm cảm giác
+              hồi hộp và nhận những phần thưởng giá trị.
             </p>
           </div>
 
@@ -23,9 +23,24 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-white mb-4">Liên kết</h4>
             <div className="space-y-2">
-              <Link href="/about" className="block text-gray-400 hover:text-purple-400 text-sm">Giới thiệu</Link>
-              <Link href="/policy" className="block text-gray-400 hover:text-purple-400 text-sm">Chính sách</Link>
-              <Link href="/terms" className="block text-gray-400 hover:text-purple-400 text-sm">Điều khoản</Link>
+              <Link
+                href="/about"
+                className="block text-gray-400 hover:text-purple-400 text-sm"
+              >
+                Giới thiệu
+              </Link>
+              <Link
+                href="/policy"
+                className="block text-gray-400 hover:text-purple-400 text-sm"
+              >
+                Chính sách
+              </Link>
+              <Link
+                href="/terms"
+                className="block text-gray-400 hover:text-purple-400 text-sm"
+              >
+                Điều khoản
+              </Link>
             </div>
           </div>
 
@@ -45,5 +60,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

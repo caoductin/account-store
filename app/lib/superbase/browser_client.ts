@@ -7,6 +7,19 @@ type SupabaseSchema = Record<string, never>;
 
 let client: SupabaseClient<SupabaseSchema> | null = null;
 
+import { createClient } from "@supabase/supabase-js";
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
+
 export function getSupabaseBrowserClient(): SupabaseClient<SupabaseSchema> {
   if (client) {
     return client;

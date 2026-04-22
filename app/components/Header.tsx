@@ -1,217 +1,230 @@
 "use client";
+
 import Link from "next/link";
-import { useState, useEffect, use } from "react";
-import {
-  Menu,
-  X,
-  User,
-  Wallet,
-  Home,
-  Gift,
-  ShoppingBag,
-  PlusCircle,
-  LogIn,
-} from "lucide-react";
-import { getSupabaseBrowserClient } from "../lib/superbase/browser_client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/superbase/browser_client";
+
+type User = { email: string; id: string };
+
+const NAV_LINKS = [
+  { href: "/", label: "Trang chủ" },
+  { href: "/shop", label: "Mua tài khoản" },
+  { href: "/blind-bags", label: "Blind Bag" },
+  { href: "/contact", label: "Liên hệ" },
+];
 
 export default function Header() {
+  const pathname = usePathname();
   const router = useRouter();
-  const [isOpen, setIsOpen] = useState(false);
-  const supabase = getSupabaseBrowserClient();
+  const [user, setUser] = useState<User | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [dropOpen, setDropOpen] = useState(false);
+
   useEffect(() => {
-    console.log("Header component đã mounted!");
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user)
+        setUser({ id: data.user.id, email: data.user.email ?? "" });
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_e, session) => {
+        setUser(
+          session?.user
+            ? { id: session.user.id, email: session.user.email ?? "" }
+            : null,
+        );
+      },
+    );
+    return () => listener.subscription.unsubscribe();
   }, []);
 
-  // Khóa cuộn trang khi mở menu mobile để trải nghiệm tốt hơn
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-  }, [isOpen]);
-
-  
-
-  const isLoggedIn = true;
-  const balance = 150000;
-
   const handleLogout = async () => {
-  const { error } = await supabase.auth.signOut()
+    await supabase.auth.signOut();
+    setDropOpen(false);
+    router.push("/");
+  };
 
-  if (error) {
-    console.log(error.message)
-  } else {
-    console.log("Logged out success!")
-    router.push("/")
-  }
-}
-
-  const navLinks = [
-    { name: "Trang chủ", href: "/", icon: Home },
-    { name: "Xé túi mù", href: "/xe-tui-mu", icon: Gift },
-    { name: "Mua acc", href: "/mua-acc", icon: ShoppingBag },
-    { name: "Nạp tiền", href: "/topup", icon: PlusCircle },
-  ];
+  const initial = user?.email?.[0]?.toUpperCase() ?? "?";
 
   return (
-    <>
-      <header className="sticky top-0 z-[100] bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-7xl">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 transition-transform group-hover:scale-105">
-              <span className="text-xl">🎁</span>
-            </div>
-            <span className="text-xl font-black text-slate-800 tracking-tighter">
-              TUIMU<span className="text-blue-600">.VN</span>
+    <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm">
+      <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
+          <span className="text-2xl">🎮</span>
+          <div className="leading-tight">
+            <span className="font-extrabold text-slate-900 tracking-tight text-base">
+              Thắng
             </span>
-          </Link>
+            <span className="font-extrabold text-red-500 tracking-tight text-base">
+              {" "}
+              Không{" "}
+            </span>
+            <span className="font-extrabold text-slate-900 tracking-tight text-base">
+              Thua
+            </span>
+          </div>
+        </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors relative group"
+        {/* Desktop nav */}
+        <nav className="hidden md:flex items-center gap-1">
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                pathname === l.href
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+              }`}
+            >
+              {l.label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Right */}
+        <div className="flex items-center gap-3">
+          {user ? (
+            <div className="relative">
+              <button
+                onClick={() => setDropOpen((v) => !v)}
+                className="w-9 h-9 rounded-full bg-blue-600 text-white font-bold text-sm flex items-center justify-center hover:bg-blue-700 transition-colors"
               >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
-              </Link>
-            ))}
-          </nav>
-
-          {/* User Area */}
-          <div className="flex items-center gap-3">
-            {isLoggedIn ? (
-              <>
-                <div className="hidden md:flex items-center gap-2.5 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
-                  <Wallet className="w-4 h-4 text-blue-600" />
-                  <span className="text-blue-600 font-black text-sm">
-                    {balance.toLocaleString("vi-VN")}đ
-                  </span>
-                </div>
-                <Link
-                  href="/profile"
-                  className="hidden md:block p-2 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition"
-                >
-                  <User className="w-5 h-5" />
-                </Link>
-              </>
-            ) : (
+                {initial}
+              </button>
+              {dropOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setDropOpen(false)}
+                  />
+                  <div className="absolute right-0 top-11 z-20 w-52 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+                    <div className="px-4 py-3 border-b border-slate-100">
+                      <p className="text-xs text-slate-400">Đăng nhập với</p>
+                      <p className="text-sm font-semibold text-slate-700 truncate">
+                        {user.email}
+                      </p>
+                    </div>
+                    <div className="py-1">
+                      <Link
+                        href="/profile"
+                        onClick={() => setDropOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                      >
+                        👤 Hồ sơ của tôi
+                      </Link>
+                      <Link
+                        href="/orders"
+                        onClick={() => setDropOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                      >
+                        📦 Đơn hàng
+                      </Link>
+                      <Link
+                        href="/wallet"
+                        onClick={() => setDropOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                      >
+                        💰 Ví của tôi
+                      </Link>
+                      <div className="border-t border-slate-100 mt-1" />
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                      >
+                        🚪 Đăng xuất
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <div className="hidden md:flex items-center gap-2">
               <Link
                 href="/login"
-                className="hidden md:flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition"
+                className="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-all"
               >
-                <LogIn className="w-4 h-4" />
                 Đăng nhập
               </Link>
-            )}
+              <Link
+                href="/register"
+                className="px-4 py-2 rounded-xl text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-100 transition-all"
+              >
+                Đăng ký
+              </Link>
+            </div>
+          )}
 
-            {/* Mobile Menu Toggle Button */}
-            <button
-              onClick={() => {
-                console.log("this is call");
-                setIsOpen(true);
-              }}
-              className="lg:hidden p-2 rounded-xl bg-slate-100 text-slate-800 hover:bg-slate-200 transition active:scale-90"
+          {/* Hamburger */}
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="md:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <Menu className="w-6 h-6" />
-            </button>
-          </div>
+              {menuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
         </div>
-      </header>
+      </div>
 
-      {/* --- MOBILE DRAWER --- */}
-      {/* Tăng z-index lên z-[9999] để chắc chắn đè lên mọi thứ */}
-      <div
-        className={`fixed inset-0 z-[9999] transition-all duration-300 ${isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
-      >
-        {/* Backdrop mờ */}
-        <div
-          className="absolute inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity duration-300"
-          onClick={() => setIsOpen(false)}
-        />
-
-        {/* Thanh Menu trượt */}
-        <aside
-          className={`absolute right-0 top-0 h-full w-[300px] max-w-[85vw] bg-white shadow-2xl transition-transform duration-300 transform flex flex-col ${isOpen ? "translate-x-0" : "translate-x-full"
-            }`}
-        >
-          {/* Header trong menu */}
-          <div className="p-5 flex items-center justify-between border-b border-slate-50">
-            <span className="text-lg font-black text-slate-800">DANH MỤC</span>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-2 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200"
+      {/* Mobile menu */}
+      {menuOpen && (
+        <div className="md:hidden border-t border-slate-100 bg-white px-5 py-4 space-y-1">
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.href}
+              href={l.href}
+              onClick={() => setMenuOpen(false)}
+              className={`block px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                pathname === l.href
+                  ? "bg-blue-50 text-blue-600"
+                  : "text-slate-600 hover:bg-slate-50"
+              }`}
             >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* User Info Section */}
-          <div className="p-6 bg-gradient-to-br from-blue-600 to-blue-700 text-white m-4 rounded-[2rem] shadow-lg shadow-blue-200">
-            {isLoggedIn ? (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur flex items-center justify-center text-white border border-white/30">
-                    <User className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-blue-100 uppercase font-bold tracking-wider">
-                      Số dư túi
-                    </p>
-                    <p className="text-xl font-black">
-                      {balance.toLocaleString("vi-VN")}đ
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
+              {l.label}
+            </Link>
+          ))}
+          {!user && (
+            <div className="pt-3 flex flex-col gap-2 border-t border-slate-100 mt-2">
               <Link
                 href="/login"
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-center gap-2 bg-white text-blue-600 py-3 rounded-2xl font-bold transition"
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2.5 rounded-xl text-sm font-medium text-center border border-slate-200 text-slate-600"
               >
                 Đăng nhập
               </Link>
-            )}
-          </div>
-
-          {/* Menu Links */}
-          <nav className="flex-1 px-4 py-2 space-y-2 overflow-y-auto">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              return (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => {
-                    console.log("this is call");
-                    setIsOpen(false);
-                  }}
-                  className="flex items-center gap-4 p-4 rounded-2xl text-slate-700 font-bold hover:bg-blue-50 hover:text-blue-600 transition-all border border-transparent hover:border-blue-100"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-slate-500" />
-                  </div>
-                  <span className="text-[16px]">{link.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Footer menu */}
-          <div className="p-6 border-t border-slate-50">
-            <button onClick={handleLogout} className="w-full py-4 text-sm font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest">
-              Đăng xuất
-            </button>
-          </div>
-        </aside>
-      </div>
-    </>
+              <Link
+                href="/register"
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-2.5 rounded-xl text-sm font-bold text-center bg-blue-600 text-white"
+              >
+                Đăng ký
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+    </header>
   );
 }

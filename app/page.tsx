@@ -1,32 +1,50 @@
-import BagGrid from "./components/BagGrid";
-import HeroBanner from "./components/Herobanner";
-import LiveActivity from "./components/LiveActivity";
 
-export default function Home() {
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "./lib/superbase/browser_client";
+import Hero from "./components/Hero";
+import Features from "./components/Features";
+import BlindBagSection from "./components/BlindBagSection";
+import CTA from "./components/CTA";
+
+// Import các sub-components
+
+export type BlindBag = {
+  id: string;
+  name: string;
+  price: number | null;
+  description: string | null;
+};
+
+export default function HomePage() {
+  const [bags, setBags] = useState<BlindBag[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchBags();
+  }, []);
+
+  const fetchBags = async () => {
+    const { data, error } = await supabase
+      .from("blind_bags")
+      .select("*")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(6);
+
+    if (error) console.error("Supabase error:", error);
+    else setBags(data ?? []);
+    setLoading(false);
+  };
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-      <HeroBanner />
-
-      <div className="mt-12">
-        <div className="flex items-center gap-2 mb-8 border-l-4 border-blue-600 pl-4">
-          <h2 className="text-2xl md:text-3xl font-black text-slate-800 uppercase tracking-tight">
-            Túi Mù FreeFire
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-          
-          <div className="lg:col-span-3">
-            <BagGrid />
-          </div>
-
-          <div className="lg:col-span-1">
-            <LiveActivity />
-          </div>
-
-        </div>
-      </div>
-    </div>
+    <main className="bg-slate-50 min-h-screen">
+      <Hero />
+      <Features />
+      <BlindBagSection bags={bags} loading={loading} />
+      <CTA />
+      {/* <Footer /> */}
+    </main>
   );
 }
