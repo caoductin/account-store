@@ -16,7 +16,7 @@ export default function Hero() {
           🎮 Shop tài khoản game uy tín số 1
         </span>
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6">
-          Thắng <span className="text-red-400">Không</span> Thua
+          {/* Thắng <span className="text-red-400">Không</span> Thua */}
           <span className="text-2xl md:text-3xl font-semibold text-slate-300 mt-2 block italic">
             Nhanh · Rẻ · Uy tín
           </span>

@@ -53,7 +53,7 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-2.5 flex-shrink-0">
           <span className="text-2xl">🎮</span>
           <div className="leading-tight">
-            <span className="font-extrabold text-slate-900 tracking-tight text-base">
+            {/* <span className="font-extrabold text-slate-900 tracking-tight text-base">
               Thắng
             </span>
             <span className="font-extrabold text-red-500 tracking-tight text-base">
@@ -62,7 +62,7 @@ export default function Header() {
             </span>
             <span className="font-extrabold text-slate-900 tracking-tight text-base">
               Thua
-            </span>
+            </span> */}
           </div>
         </Link>
 

@@ -22,28 +22,28 @@ type RevealedAccount = {
 };
 
 const RARITY_STYLE: Record<string, { bg: string; text: string; glow: string }> =
-  {
-    Thường: {
-      bg: "from-slate-500 to-slate-600",
-      text: "text-slate-200",
-      glow: "shadow-slate-500/30",
-    },
-    Hiếm: {
-      bg: "from-blue-500 to-blue-700",
-      text: "text-blue-200",
-      glow: "shadow-blue-500/40",
-    },
-    "Siêu hiếm": {
-      bg: "from-purple-500 to-violet-700",
-      text: "text-purple-200",
-      glow: "shadow-purple-500/50",
-    },
-    "Huyền thoại": {
-      bg: "from-yellow-400 to-orange-600",
-      text: "text-yellow-100",
-      glow: "shadow-yellow-500/60",
-    },
-  };
+{
+  Thường: {
+    bg: "from-slate-500 to-slate-600",
+    text: "text-slate-200",
+    glow: "shadow-slate-500/30",
+  },
+  Hiếm: {
+    bg: "from-blue-500 to-blue-700",
+    text: "text-blue-200",
+    glow: "shadow-blue-500/40",
+  },
+  "Siêu hiếm": {
+    bg: "from-purple-500 to-violet-700",
+    text: "text-purple-200",
+    glow: "shadow-purple-500/50",
+  },
+  "Huyền thoại": {
+    bg: "from-yellow-400 to-orange-600",
+    text: "text-yellow-100",
+    glow: "shadow-yellow-500/60",
+  },
+};
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function BlindBoxGame({ bagId }: { bagId: string }) {
@@ -69,30 +69,42 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
     const initData = async () => {
       setLoading(true);
 
-      const [bagRes, profileRes] = await Promise.all([
-        supabase.from("blind_bags").select("*").eq("id", bagId).single(),
-        user
-          ? supabase
-              .from("profiles")
-              .select("balance")
-              .eq("id", user.id)
-              .single()
-          : null,
-      ]);
+      try {
+        const bagRes = await supabase
+          .from("blind_bags")
+          .select("*")
+          .eq("id", bagId)
+          .single();
 
-      if (bagRes.error) {
-        console.error(bagRes.error);
-      } else {
-        setBag(bagRes.data);
+        console.log("bagRes:", bagRes);
+
+        if (bagRes.error) {
+          console.error("bag error:", bagRes.error);
+        } else {
+          setBag(bagRes.data);
+        }
+
+        if (user) {
+          const profileRes = await supabase
+            .from("profiles")
+            .select("balance")
+            .eq("id", user.id)
+            .single();
+
+          const data = profileRes.data as { balance: number } | null;
+          if (data) {
+            setBalance(data.balance);
+          }
+        }
+      } catch (err) {
+        console.error("initData error:", err);
+      } finally {
+        setLoading(false);
       }
-
-      if (profileRes?.data) setBalance(profileRes.data.balance);
-
-      setLoading(false);
     };
 
     initData();
-  }, [bagId, user]);
+  }, [bagId, user?.id]); // ✅ user?.id thay vì user
 
   // ── Open box ────────────────────────────────────────────────────────────────
   const handleChoose = async (index: number) => {
@@ -130,7 +142,6 @@ export default function BlindBoxGame({ bagId }: { bagId: string }) {
       );
 
       const json = await res.json();
-
       if (!res.ok || !json.success) {
         setErrorMsg(json.error ?? "Có lỗi xảy ra.");
         setStatus("error");
