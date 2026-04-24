@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BlindBag } from "../blind-bags/[id]/page";
+import { BlindBag } from "../blind-bags/components/BagePageClient";
 
 export default function BlindBagSection({
   bags,
